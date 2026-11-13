@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: onda
+    runtime: docker
+    plan: free
+    envVars:
+      - key: APP_NAME
+        value: Onda
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: MUSIC_CHARTS_REGION
+        value: mx
+      - key: MUSIC_CHARTS_TIMEZONE
+        value: America/Mexico_City
+      - key: MUSIC_INNERTUBE_ENABLED
+        value: "true"
