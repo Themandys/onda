@@ -20,7 +20,7 @@
     wire:key="{{ $scope ?? 'track' }}-{{ $track['video_id'] }}"
     data-track="{{ json_encode($payload + ['duration' => $duration]) }}"
     data-video-id="{{ $track['video_id'] }}"
-    class="track-row group flex items-center gap-2 rounded-xl px-2 py-1 transition-colors"
+    class="track-row group flex items-center gap-2 rounded-xl px-2 py-1"
 >
     <button
         type="button"

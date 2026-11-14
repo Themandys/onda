@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'avatar', 'bio', 'theme'])]
+#[Fillable(['name', 'email', 'password', 'avatar', 'bio', 'theme', 'transparency'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -19,6 +19,9 @@ class User extends Authenticatable
 
     /** Tema con el que arranca una cuenta nueva. */
     public const DEFAULT_THEME = 'grafito';
+
+    /** Transparencia de serie de los paneles: 0 = sólidos, 100 = cristal casi transparente. */
+    public const DEFAULT_TRANSPARENCY = 30;
 
     /**
      * Temas de interfaz: «Grafito» (oscuro y sobrio) es el de serie; el resto
@@ -225,6 +228,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Transparencia elegida para los paneles, siempre entre 0 y 100.
+     */
+    public function transparencyLevel(): int
+    {
+        return max(0, min(100, (int) ($this->transparency ?? self::DEFAULT_TRANSPARENCY)));
+    }
+
+    /**
      * Devuelve el emoji/símbolo del avatar o la inicial del nombre.
      */
     public function avatarSymbol(): string
@@ -275,6 +286,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'transparency' => 'integer',
         ];
     }
 }

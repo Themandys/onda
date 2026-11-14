@@ -3,6 +3,7 @@ services:
     name: onda
     runtime: docker
     plan: free
+    healthCheckPath: /up
     envVars:
       - key: APP_NAME
         value: Onda

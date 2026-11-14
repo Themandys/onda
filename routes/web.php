@@ -42,6 +42,13 @@ Route::middleware('auth')->group(function () {
 });
 
 /*
+ | Modo sin conexión: una página sin datos de la cuenta (lee las canciones
+ | guardadas en el navegador) que el service worker conserva en el
+ | dispositivo. Es pública porque sin red no se puede comprobar la sesión.
+ */
+Route::view('/offline', 'offline')->name('offline');
+
+/*
  | El proxy de audio no usa sesión (el navegador lo llama decenas de veces por
  | canción), así que se protege con una URL firmada que solo se entrega a
  | quien ya ha iniciado sesión y que caduca con el propio enlace del stream.

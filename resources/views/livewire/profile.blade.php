@@ -222,6 +222,134 @@
                     @endforeach
                 </div>
             @endforeach
+
+            {{-- Transparencia y fondo: los maneja el navegador (wire:ignore), el servidor solo guarda el nivel. --}}
+            <div wire:ignore>
+                <div class="mt-7 border-t border-ink/10 pt-5" x-data="{ level: @js($transparency) }">
+                    <div class="flex items-baseline justify-between gap-3">
+                        <label for="transparency" class="text-sm font-semibold text-ink">Transparencia</label>
+                        <output for="transparency" class="text-xs text-ink/60 tabular-nums" x-text="level + ' %'">{{ $transparency }} %</output>
+                    </div>
+                    <p class="mt-0.5 text-xs text-ink/60">Cuánto dejan ver los paneles lo que tienen detrás. Arrastra y míralo cambiar.</p>
+
+                    <input
+                        id="transparency"
+                        type="range"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value="{{ $transparency }}"
+                        class="range range-control mt-3 w-full"
+                        style="--progress: {{ $transparency }}%"
+                        x-model.number="level"
+                        x-bind:style="{ '--progress': level + '%' }"
+                        x-on:input="window.applyOndaTransparency($event.target.value)"
+                        x-on:change="$wire.saveTransparency(Number($event.target.value))"
+                    >
+                    <div class="mt-1 flex justify-between text-[11px] text-ink/45" aria-hidden="true">
+                        <span>Sólido</span>
+                        <span>Cristal</span>
+                    </div>
+                </div>
+
+                <div
+                    class="mt-7 border-t border-ink/10 pt-5"
+                    x-data="{
+                        current: null,
+                        busy: false,
+                        error: '',
+                        dim: 55,
+                        async init() {
+                            this.dim = window.OndaBackdrop?.dim() ?? 55;
+                            this.current = (await window.OndaBackdrop?.mount()) ?? null;
+                        },
+                        async pick(event) {
+                            const file = event.target.files[0];
+                            event.target.value = '';
+                            if (! file) return;
+
+                            this.error = '';
+                            this.busy = true;
+
+                            try {
+                                this.current = await window.OndaBackdrop.set(file);
+                            } catch (problem) {
+                                this.error = problem?.message || 'No se pudo usar ese archivo. Prueba con otro.';
+                            } finally {
+                                this.busy = false;
+                            }
+                        },
+                        async remove() {
+                            this.error = '';
+                            this.current = await window.OndaBackdrop.clear();
+                        },
+                    }"
+                    x-on:onda:backdrop-changed.window="current = $event.detail"
+                >
+                    <p class="text-sm font-semibold text-ink">Fondo</p>
+                    <p class="mt-0.5 text-xs text-ink/60">Pon una imagen o un video ligero detrás de toda la interfaz. Sube la transparencia para que se vea más.</p>
+
+                    <div class="mt-4 flex flex-wrap items-center gap-4">
+                        <div class="backdrop-preview" x-bind:class="busy && 'animate-pulse'">
+                            <template x-if="current?.kind === 'image'">
+                                <img x-bind:src="current.url" alt="Fondo actual">
+                            </template>
+                            <template x-if="current?.kind === 'video'">
+                                <video x-bind:src="current.url" muted loop autoplay playsinline aria-label="Fondo actual"></video>
+                            </template>
+                            <template x-if="! current">
+                                <span>Sin fondo</span>
+                            </template>
+                        </div>
+
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <label class="btn-primary cursor-pointer rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap transition focus-within:outline-2 focus-within:outline-offset-2">
+                                    <span x-text="busy ? 'Preparando…' : (current ? 'Cambiar fondo' : 'Elegir fondo')">Elegir fondo</span>
+                                    <input
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp,image/avif,image/gif,video/mp4,video/webm,video/quicktime"
+                                        class="sr-only"
+                                        x-on:change="pick($event)"
+                                        x-bind:disabled="busy"
+                                        aria-label="Elegir imagen o video de fondo"
+                                    >
+                                </label>
+
+                                <button type="button" x-show="current" x-cloak x-on:click="remove()" class="btn-secondary rounded-full px-4 py-2 text-xs font-medium whitespace-nowrap transition">
+                                    Quitar fondo
+                                </button>
+                            </div>
+
+                            <p class="field-error" role="alert" x-show="error" x-text="error" x-cloak></p>
+                            <p class="mt-2 text-[11px] leading-relaxed text-ink/45">Se guarda en este dispositivo, no en tu cuenta. Imágenes JPG, PNG, WebP o GIF; videos MP4 o WebM de hasta 30 MB.</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-5" x-show="current" x-cloak>
+                        <div class="flex items-baseline justify-between gap-3">
+                            <label for="backdrop-dim" class="text-sm font-medium text-ink">Atenuar el fondo</label>
+                            <output for="backdrop-dim" class="text-xs text-ink/60 tabular-nums" x-text="dim + ' %'"></output>
+                        </div>
+
+                        <input
+                            id="backdrop-dim"
+                            type="range"
+                            min="0"
+                            max="90"
+                            step="1"
+                            class="range range-control mt-3 w-full"
+                            x-model.number="dim"
+                            x-bind:style="{ '--progress': (dim / 90 * 100) + '%' }"
+                            x-on:input="window.OndaBackdrop.setDim($event.target.value)"
+                        >
+                        <div class="mt-1 flex justify-between text-[11px] text-ink/45" aria-hidden="true">
+                            <span>Fondo vivo</span>
+                            <span>Texto más legible</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
     </div>
 </div>

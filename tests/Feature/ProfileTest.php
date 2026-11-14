@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -122,5 +123,51 @@ class ProfileTest extends TestCase
         $user = User::factory()->create(['theme' => 'ya-no-existe']);
 
         $this->assertSame('grafito', $user->themeKey());
+    }
+
+    public function test_new_accounts_start_with_the_default_transparency(): void
+    {
+        $user = User::factory()->create()->refresh();
+
+        $this->assertSame(30, $user->transparency);
+        $this->actingAs($user)->get('/')->assertSee('--translucency: 0.30', false);
+    }
+
+    public function test_choosing_a_transparency_level_saves_it_and_applies_it_to_the_pages(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->call('saveTransparency', 72)
+            ->assertSet('transparency', 72);
+
+        $this->assertSame(72, $user->refresh()->transparency);
+        $this->actingAs($user)->get('/')->assertSee('--translucency: 0.72', false);
+    }
+
+    #[TestWith([150, 100])]
+    #[TestWith([-20, 0])]
+    public function test_a_transparency_level_outside_the_range_is_limited_to_it(int $requested, int $saved): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->call('saveTransparency', $requested);
+
+        $this->assertSame($saved, $user->refresh()->transparency);
+    }
+
+    public function test_changing_the_transparency_does_not_touch_other_accounts(): void
+    {
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->call('saveTransparency', 90);
+
+        $this->assertSame(30, $other->refresh()->transparency);
     }
 }

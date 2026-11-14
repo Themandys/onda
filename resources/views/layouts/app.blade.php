@@ -4,6 +4,7 @@
     $authUser = auth()->user();
     $themeKey = $authUser?->themeKey() ?? User::DEFAULT_THEME;
     $theme = User::THEMES[$themeKey];
+    $transparency = $authUser?->transparencyLevel() ?? User::DEFAULT_TRANSPARENCY;
     $genres = (array) config('music.charts.genres', []);
 
     // Enlaces principales: ruta => [texto, rutas que lo marcan como activo, trazo del icono].
@@ -35,6 +36,11 @@
         @include('partials.theme')
     </head>
     <body class="min-h-dvh font-sans antialiased">
+        {{-- Fondo personalizado (imagen o video). @persist: no se recarga al cambiar de página. --}}
+        @persist('backdrop')
+            <div id="onda-backdrop" class="backdrop" data-ready="false" aria-hidden="true"></div>
+        @endpersist
+
         {{-- Barra lateral (escritorio) --}}
         <aside class="app-sidebar glass" aria-label="Navegación">
             <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2.5 px-5 pt-5 pb-4 text-lg font-semibold tracking-tight text-ink">
@@ -80,7 +86,7 @@
         </aside>
 
         <div class="app-main">
-            <header class="sticky top-0 z-20 bg-paper/75 backdrop-blur-xl">
+            <header class="app-topbar">
                 <div class="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
                     <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2 text-base font-semibold tracking-tight text-ink lg:hidden">
                         @include('partials.brand-mark')
@@ -178,6 +184,22 @@
                         >{{ $label }}</a>
                     @endforeach
                 </nav>
+
+                {{-- Sin red: acceso al modo sin conexión, que el service worker tiene guardado en el dispositivo. --}}
+                <p
+                    x-data="{ offline: ! navigator.onLine }"
+                    x-on:offline.window="offline = true"
+                    x-on:online.window="offline = false"
+                    x-on:onda:unreachable.window="offline = true"
+                    x-on:onda:reachable.window="offline = ! navigator.onLine"
+                    x-show="offline"
+                    x-cloak
+                    role="status"
+                    class="offline-banner"
+                >
+                    <span>No hay conexión con Onda.</span>
+                    <a href="{{ route('offline') }}" class="font-semibold underline underline-offset-4">Escuchar mis canciones descargadas</a>
+                </p>
             </header>
 
             {{-- El padding inferior deja sitio al reproductor anclado. --}}

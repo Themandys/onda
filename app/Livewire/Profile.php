@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Renderless;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -38,6 +39,8 @@ class Profile extends Component
 
     public string $theme = User::DEFAULT_THEME;
 
+    public int $transparency = User::DEFAULT_TRANSPARENCY;
+
     public string $current_password = '';
 
     public string $new_password = '';
@@ -53,6 +56,7 @@ class Profile extends Component
         $this->bio = (string) ($user->bio ?? '');
         $this->avatar = (string) ($user->avatar ?? '');
         $this->theme = $user->themeKey();
+        $this->transparency = $user->transparencyLevel();
     }
 
     /**
@@ -135,6 +139,18 @@ class Profile extends Component
 
         $this->dispatch('theme-changed', theme: $themeKey, config: User::THEMES[$themeKey]);
         $this->dispatch('toast', message: 'Tema «'.User::THEMES[$themeKey]['name'].'» activado');
+    }
+
+    /**
+     * Guarda la transparencia elegida con el deslizador. El navegador ya la
+     * ha aplicado mientras se arrastraba, así que no hace falta repintar.
+     */
+    #[Renderless]
+    public function saveTransparency(int $level): void
+    {
+        $this->transparency = max(0, min(100, $level));
+
+        $this->user()->update(['transparency' => $this->transparency]);
     }
 
     public function saveProfile(): void

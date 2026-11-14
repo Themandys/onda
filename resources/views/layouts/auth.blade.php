@@ -17,9 +17,11 @@
         @fonts
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-        @include('partials.theme')
+        {{-- Sin sesión no se sabe de quién es la apariencia: se usa la que recuerda este navegador. --}}
+        @include('partials.theme', ['restore' => true])
     </head>
     <body class="min-h-dvh font-sans antialiased">
+        <div id="onda-backdrop" class="backdrop" data-ready="false" aria-hidden="true"></div>
         <div class="ambient pointer-events-none fixed inset-0 -z-10" aria-hidden="true"></div>
 
         <main class="mx-auto grid min-h-dvh w-full max-w-sm place-items-center px-4 py-10">
@@ -27,6 +29,25 @@
                 <p class="mb-7 flex items-center justify-center gap-2.5 text-xl font-semibold tracking-tight text-ink">
                     @include('partials.brand-mark')
                     {{ config('app.name') }}
+                </p>
+
+                {{-- Tras recargar por una sesión caducada (ver resources/js/app.js). --}}
+                <p
+                    x-data="{
+                        expired: false,
+                        init() {
+                            try {
+                                this.expired = sessionStorage.getItem('onda:expired') === '1';
+                                sessionStorage.removeItem('onda:expired');
+                            } catch {}
+                        },
+                    }"
+                    x-show="expired"
+                    x-cloak
+                    role="status"
+                    class="glass mb-4 rounded-2xl px-4 py-3 text-sm text-ink/80"
+                >
+                    La página llevaba un rato abierta y se ha actualizado. Vuelve a intentarlo.
                 </p>
 
                 {{ $slot }}

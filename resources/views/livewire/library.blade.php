@@ -81,15 +81,18 @@
                 <p class="text-sm text-ink/60">Guardadas en este navegador: suenan aunque no tengas internet.</p>
             </div>
 
-            @if ($offlineTracks->isNotEmpty())
-                <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2">
+                {{-- Enlace normal (sin wire:navigate): el modo sin conexión es una página aparte, sin Livewire. --}}
+                <a href="{{ route('offline') }}" class="section-link" title="Pantalla que funciona sin internet con las canciones guardadas en este dispositivo">Abrir modo sin conexión</a>
+
+                @if ($offlineTracks->isNotEmpty())
                     <button
                         type="button"
                         data-play-all
                         class="section-link"
                     >Reproducir todo</button>
-                </div>
-            @endif
+                @endif
+            </div>
         </div>
 
         @if ($offlineTracks->isEmpty())
@@ -108,7 +111,7 @@
                         data-track="{{ json_encode($trackData) }}"
                         data-video-id="{{ $item->video_id }}"
                         data-offline="true"
-                        class="track-row group flex items-center gap-2 rounded-xl px-2 py-1 transition-colors"
+                        class="track-row group flex items-center gap-2 rounded-xl px-2 py-1"
                     >
                         <button
                             type="button"

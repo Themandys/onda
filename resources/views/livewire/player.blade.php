@@ -612,6 +612,51 @@
         }
     }
 
+    // Descarga la portada (pequeña) para guardarla junto al audio. Devuelve null si no se puede.
+    async function fetchCoverBlob(url) {
+        if (!url) return null;
+
+        try {
+            const response = await fetch(sized(url, 300), { mode: 'cors', credentials: 'omit', referrerPolicy: 'no-referrer' });
+            if (!response.ok) return null;
+
+            const cover = await response.blob();
+
+            return cover.type.startsWith('image/') && cover.size <= 1024 * 1024 ? cover : null;
+        } catch {
+            return null;
+        }
+    }
+
+    // Las canciones guardadas antes de que existiera el modo sin conexión no tienen portada: se les añade ahora.
+    async function backfillOfflineCovers() {
+        if (!navigator.onLine) return;
+
+        try {
+            const db = await openOfflineDb();
+            const records = await new Promise((resolve) => {
+                const req = db.transaction(OFFLINE_STORE, 'readonly').objectStore(OFFLINE_STORE).getAll();
+                req.onsuccess = () => resolve(req.result || []);
+                req.onerror = () => resolve([]);
+            });
+
+            for (const record of records.filter((item) => !item.cover && item.thumbnail_url).slice(0, 40)) {
+                const cover = await fetchCoverBlob(record.thumbnail_url);
+                if (!cover) continue;
+
+                await new Promise((resolve) => {
+                    const tx = db.transaction(OFFLINE_STORE, 'readwrite');
+                    tx.objectStore(OFFLINE_STORE).put({ ...record, cover });
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => resolve(false);
+                    tx.onabort = () => resolve(false);
+                });
+            }
+        } catch {
+            // Sin IndexedDB no hay nada que completar.
+        }
+    }
+
     async function removeTrackOffline(videoId, { notify = true } = {}) {
         if (!videoId) return;
         try {
@@ -716,6 +761,8 @@
                 mime_type: mimeType,
                 size_bytes: blob.size,
                 blob,
+                // La portada va con la canción: el modo sin conexión no puede pedirla a internet.
+                cover: await fetchCoverBlob(track.thumbnail_url),
                 saved_at: Date.now(),
             };
 
@@ -2208,6 +2255,7 @@
     refreshStatus();
     renderQueue();
     syncOfflineBadges();
+    (window.requestIdleCallback || ((run) => setTimeout(run, 2000)))(() => backfillOfflineCovers());
 
     // Útil desde la consola o desde otros scripts.
     window.musicPlayer = {
