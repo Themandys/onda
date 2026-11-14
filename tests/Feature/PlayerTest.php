@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Livewire\Player;
 use App\Models\ExcludedTrack;
 use App\Models\Play;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -21,6 +22,13 @@ class PlayerTest extends TestCase
         'artist' => 'Daft Punk',
         'thumbnail_url' => 'https://yt3.googleusercontent.com/abc=w544-h544-l90-rw',
     ];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->actingAs(User::factory()->create());
+    }
 
     public function test_recording_a_play_stores_the_song_and_counts_repeats(): void
     {

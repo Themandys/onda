@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToUser;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
 #[Fillable(['video_id', 'title', 'artist', 'thumbnail_url'])]
 class Favorite extends Model
 {
+    use BelongsToUser;
+
     /**
      * Añade o quita la canción de favoritos. Devuelve true si queda guardada.
      *

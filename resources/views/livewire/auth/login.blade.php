@@ -44,4 +44,9 @@
             <span wire:loading wire:target="login">Entrando…</span>
         </button>
     </form>
+
+    <p class="mt-5 text-center text-sm text-ink/60">
+        ¿Aún no tienes cuenta?
+        <a href="{{ route('register') }}" wire:navigate class="font-medium text-ink underline-offset-4 hover:underline">Regístrate</a>
+    </p>
 </div>

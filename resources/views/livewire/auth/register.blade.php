@@ -1,6 +1,6 @@
 <div class="glass rounded-3xl p-6 sm:p-7">
     <h1 class="text-2xl font-semibold tracking-tight text-ink">Crea tu cuenta</h1>
-    <p class="mt-1 text-sm text-ink/60">Es la única cuenta de esta aplicación: en cuanto la crees, el registro se cierra.</p>
+    <p class="mt-1 text-sm text-ink/60">Tu biblioteca, tus listas y tu historial se guardan en tu cuenta.</p>
 
     <form wire:submit="register" class="mt-6 flex flex-col gap-4" novalidate>
         <label class="flex flex-col gap-1.5">
@@ -68,4 +68,9 @@
             <span wire:loading wire:target="register">Creando…</span>
         </button>
     </form>
+
+    <p class="mt-5 text-center text-sm text-ink/60">
+        ¿Ya tienes cuenta?
+        <a href="{{ route('login') }}" wire:navigate class="font-medium text-ink underline-offset-4 hover:underline">Inicia sesión</a>
+    </p>
 </div>

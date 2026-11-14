@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToUser;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
 #[Fillable(['year_month', 'video_id', 'title', 'artist', 'thumbnail_url', 'duration', 'play_count', 'last_played_at'])]
 class MonthlyPlay extends Model
 {
+    use BelongsToUser;
+
     /**
      * Registra una reproducción en el mes actual (formato `YYYY-MM`).
      *

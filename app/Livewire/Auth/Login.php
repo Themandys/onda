@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Auth;
 
-use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -25,14 +24,6 @@ class Login extends Component
 
     public bool $remember = true;
 
-    public function mount(): void
-    {
-        // Primera visita: todavía no existe la cuenta, así que toca crearla.
-        if (User::doesntExist()) {
-            $this->redirectRoute('register');
-        }
-    }
-
     public function login(): void
     {
         $credentials = $this->validate(
@@ -46,6 +37,8 @@ class Login extends Component
                 'password.required' => 'Escribe tu contraseña.',
             ],
         );
+
+        $credentials['email'] = Str::lower(trim($credentials['email']));
 
         $throttleKey = Str::transliterate(Str::lower($this->email)).'|'.request()->ip();
 

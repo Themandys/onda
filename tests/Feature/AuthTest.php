@@ -27,9 +27,10 @@ class AuthTest extends TestCase
         $this->get($path)->assertRedirect(route('login'));
     }
 
-    public function test_login_page_redirects_to_registration_until_an_account_exists(): void
+    public function test_login_and_registration_pages_link_to_each_other(): void
     {
-        $this->get('/login')->assertRedirect(route('register'));
+        $this->get('/login')->assertOk()->assertSee(route('register'));
+        $this->get('/register')->assertOk()->assertSee(route('login'));
     }
 
     public function test_registration_creates_the_account_and_signs_in(): void
@@ -72,21 +73,61 @@ class AuthTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_registration_closes_once_an_account_exists(): void
+    public function test_registration_stays_open_for_more_accounts(): void
     {
-        $form = Livewire::test(Register::class)
-            ->set('name', 'Intruso')
-            ->set('email', 'intruso@example.com')
-            ->set('password', 'una-clave-larga')
-            ->set('password_confirmation', 'una-clave-larga');
-
         User::factory()->create();
 
-        $form->call('register')->assertForbidden();
-        $this->get('/register')->assertRedirect(route('login'));
+        Livewire::test(Register::class)
+            ->set('name', 'Grace Hopper')
+            ->set('email', 'Grace@Example.com')
+            ->set('password', 'una-clave-larga')
+            ->set('password_confirmation', 'una-clave-larga')
+            ->call('register')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('home'));
+
+        $this->assertDatabaseCount('users', 2);
+        $this->assertAuthenticatedAs(User::where('email', 'grace@example.com')->sole());
+    }
+
+    public function test_registration_rejects_an_email_that_already_has_an_account(): void
+    {
+        User::factory()->create(['email' => 'ada@example.com']);
+
+        Livewire::test(Register::class)
+            ->set('name', 'Otra Ada')
+            ->set('email', 'ADA@example.com')
+            ->set('password', 'una-clave-larga')
+            ->set('password_confirmation', 'una-clave-larga')
+            ->call('register')
+            ->assertSee('Ya hay una cuenta con ese correo.');
 
         $this->assertDatabaseCount('users', 1);
         $this->assertGuest();
+    }
+
+    public function test_registration_is_limited_per_connection(): void
+    {
+        foreach (range(1, 5) as $number) {
+            Livewire::test(Register::class)
+                ->set('name', "Cuenta {$number}")
+                ->set('email', "cuenta{$number}@example.com")
+                ->set('password', 'una-clave-larga')
+                ->set('password_confirmation', 'una-clave-larga')
+                ->call('register');
+
+            auth()->logout();
+        }
+
+        Livewire::test(Register::class)
+            ->set('name', 'Una más')
+            ->set('email', 'una-mas@example.com')
+            ->set('password', 'una-clave-larga')
+            ->set('password_confirmation', 'una-clave-larga')
+            ->call('register')
+            ->assertSee('Se han creado demasiadas cuentas');
+
+        $this->assertDatabaseCount('users', 5);
     }
 
     public function test_login_signs_in_with_valid_credentials(): void

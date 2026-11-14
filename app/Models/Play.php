@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToUser;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
 #[Fillable(['video_id', 'title', 'artist', 'thumbnail_url', 'play_count', 'last_played_at'])]
 class Play extends Model
 {
+    use BelongsToUser;
+
     /**
      * Anota que la canción ha sonado: la sube al principio del historial,
      * suma una reproducción y actualiza el resumen mensual.

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Livewire\Genre;
 use App\Livewire\NewReleases;
 use App\Models\ExcludedTrack;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
@@ -23,6 +24,8 @@ class GenreTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->actingAs(User::factory()->create());
 
         config([
             'music.piped.instances' => ['https://piped.test'],

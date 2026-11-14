@@ -36,6 +36,8 @@ class LibraryTest extends TestCase
     {
         parent::setUp();
 
+        $this->actingAs(User::factory()->create());
+
         config([
             'music.piped.instances' => ['https://piped.test'],
             'music.innertube.enabled' => false,
@@ -196,6 +198,25 @@ class LibraryTest extends TestCase
 
         $this->assertDatabaseCount('playlists', 0);
         $this->assertDatabaseCount('playlist_tracks', 0);
+    }
+
+    public function test_each_account_only_sees_and_changes_its_own_library(): void
+    {
+        Favorite::create(self::TRACK);
+        Play::record(self::TRACK);
+        $playlist = Playlist::create(['name' => 'Privada']);
+
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(Favorites::class)->assertDontSee(self::TRACK['title']);
+        Livewire::test(Library::class)->assertDontSee('Privada');
+        $this->get(route('playlists.show', $playlist->id))->assertNotFound();
+
+        Livewire::test(Favorites::class)->call('toggleFavorite', self::TRACK);
+
+        $this->assertSame(1, Favorite::count());
+        $this->assertSame(0, Play::count());
+        $this->assertSame(2, Favorite::withoutGlobalScopes()->count());
     }
 
     public function test_favorites_page_lists_the_newest_first(): void

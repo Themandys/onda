@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToUser;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
 #[Fillable(['video_id', 'title', 'artist', 'thumbnail_url', 'duration', 'size_bytes', 'mime_type'])]
 class OfflineTrack extends Model
 {
+    use BelongsToUser;
+
     /**
      * @return array{video_id: string, title: string, artist: string, thumbnail_url: string, duration: int}
      */

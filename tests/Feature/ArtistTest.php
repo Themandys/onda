@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Livewire\Artist;
 use App\Models\ExcludedTrack;
+use App\Models\User;
 use App\Services\ArtistInfoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -19,6 +20,8 @@ class ArtistTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->actingAs(User::factory()->create());
 
         config([
             'music.piped.instances' => ['https://piped.test'],
