@@ -49,7 +49,8 @@ mkdir -p database storage/app/public/avatars storage/framework/cache storage/fra
 touch database/database.sqlite\n\
 php artisan migrate --force\n\
 php artisan storage:link --force || true\n\
-exec php artisan serve --host=0.0.0.0 --port="${PORT:-8080}"\n' > /usr/local/bin/start-onda \
+export PHP_CLI_SERVER_WORKERS="${PHP_CLI_SERVER_WORKERS:-4}"\n\
+exec php artisan serve --no-reload --host=0.0.0.0 --port="${PORT:-8080}"\n' > /usr/local/bin/start-onda \
     && chmod +x /usr/local/bin/start-onda
 
 EXPOSE 8080

@@ -13,7 +13,8 @@
 <section data-track-list wire:init="load">
     <header class="artist-hero">
         @if ($photo)
-            <img src="{{ $photo }}" alt="" referrerpolicy="no-referrer" class="artist-hero-photo">
+            {{-- Si la foto no carga, se quita y queda el degradado con la luz de la canción. --}}
+            <img src="{{ $photo }}" alt="" referrerpolicy="no-referrer" class="artist-hero-photo" x-data x-on:error="$el.remove()">
         @endif
 
         <div class="p-6 sm:p-8">
